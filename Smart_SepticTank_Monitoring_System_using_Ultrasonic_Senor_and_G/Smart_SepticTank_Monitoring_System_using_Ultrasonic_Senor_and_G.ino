@@ -2,7 +2,7 @@
 
 SoftwareSerial GPRS(13, 12);
 
-int led1 = 2, led2 = 3, led3 = 4, led4 = 5;
+int led1 = 2, led2 = 3, led3 = 4, led4 = 5, buzzer = 6;
 
 int echoPin = 8;                           // Echo Pin of the ultrasonic sensor
 
@@ -19,7 +19,7 @@ int echoTime;
 void setup()
 
 {
-  
+
   pinMode(led1, OUTPUT);
 
   pinMode(led2, OUTPUT);
@@ -27,7 +27,7 @@ void setup()
   pinMode(led3, OUTPUT);
 
   pinMode(led4, OUTPUT);
- 
+
   pinMode(echoPin, INPUT);
 
   pinMode(trigPin, OUTPUT);
@@ -36,6 +36,8 @@ void setup()
 
   Serial.begin(9600);                  // the Serial port of Arduino baud rate.
 
+  digitalWrite(buzzer, HIGH);
+
   delay(500);
 
 }
@@ -43,20 +45,20 @@ void setup()
 void loop()
 
 {
-//ACTIVATING SENSOR AND SETTING DISTANCE START
+  //ACTIVATING SENSOR AND SETTING DISTANCE START
 
-//ACTIVATING SENSOR AND SETTING DISTANCE END
+  //ACTIVATING SENSOR AND SETTING DISTANCE END
 
   Sensor();
 
-  if(distance < triggerContentDistance)
+  if (distance < triggerContentDistance)
 
   {
 
     digitalWrite(led2, LOW);
     digitalWrite(led3, LOW);
 
-    for(int i=0;i<=3;i++)
+    for (int i = 0; i <= 3; i++)
     {
       digitalWrite(led1, HIGH);
       delay(250);
@@ -68,125 +70,125 @@ void loop()
       delay(250);
     }
 
-     Serial.println( "An obstacle encountered!");
-     Serial.print(distance);
-     Serial.println("cm");
-     Serial.println();
-    
-    for(int c=0;c<=10;c++)
+    Serial.println( "An obstacle encountered!");
+    Serial.print(distance);
+    Serial.println("cm");
+    Serial.println();
+
+    for (int c = 0; c <= 10; c++)
     {
       digitalWrite(led1, HIGH);
       delay(500);
-      digitalWrite(led1,LOW);
+      digitalWrite(led1, LOW);
       delay(500);
-     }
+    }
 
-     digitalWrite(led1, HIGH);
-     digitalWrite(led4, LOW);
-     
+    digitalWrite(led1, HIGH);
+    digitalWrite(led4, LOW);
+
 
     //CHECKING WHETHER ITS AN OBSTRUCTION
     Sensor();
-      if(distance < triggerContentDistance)
+    if (distance < triggerContentDistance)
+    {
+      Serial.println("Sending Warning SMS...");
+      sendWarningSMS();
+      digitalWrite(led4, HIGH);
+      delay(1000);
+      digitalWrite(led4, LOW);
+
+      toServer();
+      digitalWrite(led4, HIGH);
+      delay(1000);
+      digitalWrite(led4, LOW);
+
+      Sensor();
+      if (distance < triggerContentDistance) //IF RETURNS TRUE, SYSTEM STOPS, AND A MANUAL RESET IS REQUIRED
       {
-        Serial.println("Sending Warning SMS...");
-        sendWarningSMS();
+        //All the LEDs turn on if the distance value is still below triggerContentDistance
+        digitalWrite(led1, HIGH);
         digitalWrite(led4, HIGH);
-        delay(1000);
+        digitalWrite(led2, HIGH);
+        digitalWrite(led3, HIGH);
+
+        //Message sent to responsible person and contents updated to the ThingSpeak Server
+        sendSMS();
         digitalWrite(led4, LOW);
-        
+        delay(1000);
+        digitalWrite(led4, HIGH);
+
         toServer();
-        digitalWrite(led4, HIGH);
-        delay(1000);
         digitalWrite(led4, LOW);
-        
-          Sensor(); 
-         if(distance < triggerContentDistance)//IF RETURNS TRUE, SYSTEM STOPS, AND A MANUAL RESET IS REQUIRED
-         { 
-          //All the LEDs turn on if the distance value is still below triggerContentDistance
-          digitalWrite(led1, HIGH);
-          digitalWrite(led4, HIGH);
-          digitalWrite(led2, HIGH);
-          digitalWrite(led3, HIGH);
-  
-          //Message sent to responsible person and contents updated to the ThingSpeak Server
-          sendSMS();
-          digitalWrite(led4, LOW);
-          delay(1000);
-          digitalWrite(led4, HIGH);
-          
-          toServer();
-          digitalWrite(led4, LOW);
-          delay(1000);
-          digitalWrite(led4, HIGH);
-          
-          digitalWrite(led4, LOW);
-     
-          Serial.println( "Septic Tank has reached maximum level");
-          Serial.print(distance);
-          Serial.println("cm");
-          Serial.println();
-          Serial.println("Sent SMS!");
-          Serial.println("Septic is full, System Shutting down!");
-          
-          while(1); //The loop is haulted/stopped.
-        }
-        
-      }
-      else
-      {
-        Serial.println("An interference cleared, good to go."); //prints to serial monitor
-      }
+        delay(1000);
+        digitalWrite(led4, HIGH);
 
-     }
-   //END OF CHECKING  
+        digitalWrite(led4, LOW);
 
-    else if(distance >= triggerContentDistance && distance <= warningDistance)
-      {
-        
-
-        digitalWrite(led1, LOW);
-        digitalWrite(led2, LOW);
-        digitalWrite(led3, HIGH);
-        delay(200);
-        digitalWrite(led3, LOW);
-        delay(200);
-        digitalWrite(led3, HIGH);
-                
-        Serial.println( "Septic Tank almost reaching maximum level");
+        Serial.println( "Septic Tank has reached maximum level");
         Serial.print(distance);
         Serial.println("cm");
         Serial.println();
-        toServer();
-    
-        delay(2000);
+        Serial.println("Sent SMS!");
+        Serial.println("Septic is full, System Shutting down!");
+
+        while (1); //The loop is haulted/stopped.
       }
 
-
-   else
-    { 
-      digitalWrite(led1, LOW);
-      digitalWrite(led3, LOW);
-      Serial.println( "Septic Tank level is Okay");
-      
-      digitalWrite(led2, HIGH);
-      delay(250);
-      digitalWrite(led2, LOW);
-      delay(250);
-      digitalWrite(led2, HIGH);
-      digitalWrite(led2, HIGH);
-      delay(250);
-      digitalWrite(led2, LOW);
-      delay(250);
-      digitalWrite(led2, HIGH);
-      
-      Serial.print(distance);
-      
-      Serial.println("cm");
-      Serial.println();
-      
-      toServer();
     }
+    else
+    {
+      Serial.println("An interference cleared, good to go."); //prints to serial monitor
+    }
+
+  }
+  //END OF CHECKING
+
+  else if (distance >= triggerContentDistance && distance <= warningDistance)
+  {
+
+
+    digitalWrite(led1, LOW);
+    digitalWrite(led2, LOW);
+    digitalWrite(led3, HIGH);
+    delay(200);
+    digitalWrite(led3, LOW);
+    delay(200);
+    digitalWrite(led3, HIGH);
+
+    Serial.println( "Septic Tank almost reaching maximum level");
+    Serial.print(distance);
+    Serial.println("cm");
+    Serial.println();
+    toServer();
+
+    delay(2000);
+  }
+
+
+  else
+  {
+    digitalWrite(led1, LOW);
+    digitalWrite(led3, LOW);
+    Serial.println( "Septic Tank level is Okay");
+
+    digitalWrite(led2, HIGH);
+    delay(250);
+    digitalWrite(led2, LOW);
+    delay(250);
+    digitalWrite(led2, HIGH);
+    digitalWrite(led2, HIGH);
+    delay(250);
+    digitalWrite(led2, LOW);
+    delay(250);
+    digitalWrite(led2, HIGH);
+
+    Serial.print(distance);
+
+    Serial.println("cm");
+    Serial.println();
+
+    toServer();
+  }
 
   delay(10);                    //Delay 10ms before next reading.
 
@@ -194,11 +196,11 @@ void loop()
 
 //SEND WARNING SMS
 void sendWarningSMS()
-{  
+{
   GPRS.println("AT+CIPSHUT");
   updateSerial();
   delay(5000);
-  
+
   GPRS.println("AT+CMGF=1");      // Set modem to text mode
   updateSerial();
 
@@ -228,7 +230,8 @@ void sendWarningSMS()
 
   delay(700);
 
-  GPRS.write(26);            // equivalent of CTRL-Z delay(3000);
+  GPRS.write(26);            // equivalent of CTRL-Z
+  delay(3000);
 
 }
 
@@ -243,7 +246,7 @@ void sendSMS()
 
   GPRS.println("AT");
   updateSerial();
-  
+
   GPRS.println("AT+CMGF=1");      // Set modem to text mode
   updateSerial();
 
@@ -273,69 +276,69 @@ void sendSMS()
 
   delay(700);
 
-  GPRS.write(26);            // equivalent of CTRL-Z delay(3000);
+  GPRS.write(26);            // equivalent of CTRL-Z
+  delay(3000);
 
 }
 
 //SENSOR FUNCTION FOR SETTING UP THE TRIGGER AND ECHO PINS
 void Sensor()
-  {
+{
 
-    digitalWrite(trigPin, LOW);                   //Set the trigger pin of the SR04 sensor to low
-  
-    delayMicroseconds(2);
-  
-    digitalWrite(trigPin, HIGH);                //Set the trigger pin of the SR04 sensor to high which will which will send a pulse.
-  
-    delayMicroseconds(10);
-  
-    digitalWrite(trigPin, LOW);                 //Set the trigger pin of the SR04 sensor to low
-  
-    echoTime = pulseIn(echoPin, HIGH);        //Reads a pulse (either HIGH or LOW) on a pin. For example, if value is HIGH, pulseIn() waits for the pin to go HIGH, starts timing, then waits for the pin to go LOW and stops timing. Returns the length of the pulse in microseconds or 0 if no complete pulse was received within the timeout https://www.arduino.cc/en/Reference/PulseIn
-  
-    distance = echoTime * 0.0340 / 2;
-  
-  }
+  digitalWrite(trigPin, LOW);                   //Set the trigger pin of the SR04 sensor to low
 
-  //SENDING TO SERVER
-  void toServer(){
+  delayMicroseconds(2);
+
+  digitalWrite(trigPin, HIGH);                //Set the trigger pin of the SR04 sensor to high which will which will send a pulse.
+
+  delayMicroseconds(10);
+
+  digitalWrite(trigPin, LOW);                 //Set the trigger pin of the SR04 sensor to low
+
+  echoTime = pulseIn(echoPin, HIGH);        //Reads a pulse (either HIGH or LOW) on a pin. For example, if value is HIGH, pulseIn() waits for the pin to go HIGH, starts timing, then waits for the pin to go LOW and stops timing. Returns the length of the pulse in microseconds or 0 if no complete pulse was received within the timeout https://www.arduino.cc/en/Reference/PulseIn
+
+  distance = echoTime * 0.0340 / 2;
+
+}
+
+//SENDING TO SERVER
+void toServer() {
   Serial.println("AT+CIPSHUT\r\n");
   GPRS.println("AT+CIPSHUT"); //Turn off GSM/
   updateSerial();
   delay(5000);
-   //Print response on the serial monitor/
+  //Print response on the serial monitor/
   delay(5000);
-  
-  Serial.println("HTTP post method: ");
+
   Serial.println("AT\r\n");
   GPRS.println("AT"); /*Check Communication*/
   updateSerial();
   delay(5000);
-   /*Print response on the serial monitor*/
+  /*Print response on the serial monitor*/
   delay(1000);
 
   Serial.println("CMD AT\r\n");
   GPRS.println("CMD AT"); /*Check Communication*/
   updateSerial();
   delay(5000);
-   /*Print response on the serial monitor*/
+  /*Print response on the serial monitor*/
   delay(1000);
 
   Serial.println("AT+CIPMUX=0\r\n");
   GPRS.println("AT+CIPMUX=0"); /*Check Communication*/
   updateSerial();
   delay(5000);
-   /*Print response on the serial monitor*/
+  /*Print response on the serial monitor*/
   delay(1000);
 
   Serial.println("AT+CGATT=1\r\n");
   GPRS.println("AT+CGATT=1"); /*Check Communication*/
   updateSerial();
   delay(5000);
-   /*Print response on the serial monitor*/
+  /*Print response on the serial monitor*/
   delay(1000);
 
-//  Serial.print("\"AT+CSTT="INTERNET","",""\r\n");
+  //  Serial.print("\"AT+CSTT="INTERNET","",""\r\n");
 
   //tryStast
   Serial.print("AT+CSTT=");
@@ -356,45 +359,45 @@ void Sensor()
   GPRS.println("\r\n");
   updateSerial();
   delay(5000);
-   /*Print response on the serial monitor*/
+  /*Print response on the serial monitor*/
   delay(1000);
 
   Serial.println("AT+CIICR");
   GPRS.println("AT+CIICR"); /*Check Communication*/
   updateSerial();
   delay(5000);
-   /*Print response on the serial monitor*/
+  /*Print response on the serial monitor*/
   delay(1000);
 
   Serial.println("AT+CIFSR");
   GPRS.println("AT+CIFSR"); /*Check Communication*/
   updateSerial();
   delay(1000);
-   /*Print response on the serial monitor*/
+  /*Print response on the serial monitor*/
   delay(1000);
 
   Serial.println("AT+CIPSTART=\"TCP\",\"184.106.153.149\",80");
   GPRS.println("AT+CIPSTART=\"TCP\",\"184.106.153.149\",80");
   updateSerial();
   delay(5000);
-  
+
   delay(1000);
 
   Serial.println("AT+CIPSEND=44");
   GPRS.println("AT+CIPSEND=44");
   updateSerial();
   delay(5000);
-  
+
   delay(1000);
 
-  Serial.println("GET https://api.thingspeak.com/update?api_key=U64QNZUHE8ARMSQ2&field1=distance\r\n"); 
+  Serial.println("GET https://api.thingspeak.com/update?api_key=U64QNZUHE8ARMSQ2&field1=distance\r\n");
   GPRS.println("GET https://api.thingspeak.com/update?api_key=U64QNZUHE8ARMSQ2&field1=distance\r\n");//Sends the output to the ThinkSpeak server
   delay(15000);
-    }
+}
 
-    
- void updateSerial()
+
+void updateSerial()
 {
-  while(GPRS.available()!=0) /*If data is available on Serial port*/
-  Serial.write(char(GPRS.read())); /*Print character received on to the Serial monitor*/
+  while (GPRS.available() != 0) /*If data is available on Serial port*/
+    Serial.write(char(GPRS.read())); /*Print character received on to the Serial monitor*/
 }
