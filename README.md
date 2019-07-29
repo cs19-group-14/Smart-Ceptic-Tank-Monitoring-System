@@ -1,4 +1,4 @@
-# Smart-Ceptic-Tank-Monitoring-System
+# Smart Septic Tank Monitoring System
 
 **Written in C.**
 
@@ -6,10 +6,10 @@
 * Ultrasonic sensor
 * GSM Module
 * Arduino uno microcontroller
-
-
-## Built With:
-* C programming language
+* SIM Card
+* Jumper wires
+* LEDs
+* Resistors... 3/10k
 
 ## Contributing
 
