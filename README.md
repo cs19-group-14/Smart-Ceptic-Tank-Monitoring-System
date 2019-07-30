@@ -10,6 +10,7 @@
 * Jumper wires
 * LEDs
 * Resistors... 3/10k
+* Bread-board
 
 ## Contributing
 
